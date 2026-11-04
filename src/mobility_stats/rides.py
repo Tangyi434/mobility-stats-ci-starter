@@ -5,57 +5,60 @@ from collections import defaultdict
 
 def load_rides(csv_path: str) -> list[dict[str, object]]:
     """Load ride data from a CSV file."""
-    if not os.path.exists(csv_path):
-        raise FileNotFoundError(f"Could not find file: {csv_path}")
-
     rides_list = []
+    if os.path.exists(csv_path) == False:
+        raise FileNotFoundError(f"Could not find file: {csv_path}")
     with open(csv_path, newline="", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
+        r = csv.DictReader(f)
+        for rides in r:
+            rides.copy()
             rides_list.append(
                 {
-                    "ride_id": row["ride_id"],
-                    "start_station": row["start_station"],
-                    "end_station": row["end_station"],
-                    "duration_min": float(row["duration_min"]),
-                    "rider_type": row["rider_type"],
+                    "ride_id": rides["ride_id"],
+                    "start_station": rides["start_station"],
+                    "end_station": rides["end_station"],
+                    "duration_min": float(rides["duration_min"]),
+                    "rider_type": rides["rider_type"],
                 }
             )
     return rides_list
 
 
-def average_duration(rides: list[dict[str, object]]) -> float:
+def average_duration(rides):
     """Return the average ride duration in minutes."""
-    if not rides:
+    if len(rides) == 0:
         return 0.0
-    total = sum(float(ride["duration_min"]) for ride in rides)
-    return total / len(rides)
-
-
-def count_by_rider_type(rides: list[dict[str, object]]) -> dict[str, int]:
-    """Count rides for each rider type."""
-    counts: dict[str, int] = defaultdict(int)
+    counts = 0.0
     for ride in rides:
-        counts[str(ride["rider_type"])] += 1
+        counts += ride["duration_min"]
+    return counts / len(rides)
+
+
+def count_by_rider_type(rides):
+    """Count rides for each rider type."""
+    counts = defaultdict(int)
+    for ride in rides:
+        counts[ride["rider_type"]] += 1
     return dict(counts)
 
 
-def busiest_start_station(rides: list[dict[str, object]]) -> str:
+def busiest_start_station(rides):
     """Return the start station with the most rides."""
-    if rides is None:
+    if rides == None:
         raise ValueError("rides must not be None")
-    if not rides:
+    if len(rides) == 0:
         raise ValueError("rides must not be empty")
-
-    counts: dict[str, int] = {}
+    counts = {}
     for ride in rides:
-        station = str(ride["start_station"])
-        counts[station] = counts.get(station, 0) + 1
+        d = ride["start_station"]
+        counts[d] = counts.get(d, 0) + 1
     return max(counts, key=counts.get)
 
 
-def filter_long_rides(
-    rides: list[dict[str, object]], min_duration: float = 30
-) -> list[dict[str, object]]:
-    """Return all rides with duration greater than or equal to min_duration minutes."""
-    return [ride for ride in rides if float(ride["duration_min"]) >= min_duration]
+def filter_long_rides(rides, counts=30):
+    """Return all rides with duration greater than or equal to counts minutes."""
+    long_rides = []
+    for ride in rides:
+        if ride["duration_min"] >= counts:
+            long_rides.append(ride)
+    return long_rides
