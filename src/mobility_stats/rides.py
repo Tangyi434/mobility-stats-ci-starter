@@ -1,6 +1,6 @@
-from collections import defaultdict
 import csv
 import os
+from collections import defaultdict
 
 
 def load_rides(csv_path: str) -> list[dict[str, object]]:
